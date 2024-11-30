@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastermind One Page</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css">
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <script type="module">
+        import { createApp } from 'https://unpkg.com/petite-vue?module'
+        createApp({
+            tries: 0,
+            guess: "",
+            guesses: [],
+            block: false,
+            target: "1234",
+            MAX_TRIES: 12,
+            add() {
+                this.addGuess(this.guess)
+                this.guess = ''
+            },
+            validateInput() {
+                this.guess = this.guess.replace(/[^1-7]/g, '')
+            },
+            addGuess(guess) {
+                this.tries++
+                let [win, score] = this.calculateScore(this.target, String(guess))
+
+                if (win) {
+                    this.block = true
+                }
+
+                if (this.tries == this.MAX_TRIES) {
+                    score = `You loose! CODE: ${this.target}`
+                    this.block = true
+                }
+
+                this.guesses.push({ value: guess, score })
+            },
+            calculateScore(target, guess) {
+                let score = ''
+                for (let i = 0; i < guess.length; i++) {
+                    if (guess[i] === target[i]) {
+                        score += 'X'
+                    }
+                    if (guess[i] !== target[i] && target.includes(guess[i])) {
+                        score += 'O'
+                    }
+                }
+                if (score == 'XXXX') {
+                    return [true, 'You win!']
+                }
+
+                return [false, score]
+            }
+        }).mount()
+    </script>
+
+
+    <header class="container">
+        <hgroup>
+            <h1>Mastermind</h1>
+            <div>Mastermind is a code-breaking game for two players.</div>
+        </hgroup>
+    </header>
+
+    <main class="container" v-scope>
+        <h3>Instructions:</h3>
+        <ul>
+            <li>Guess the secret color code in as few tries as possible.</li>
+            <li>Please, enter your color code.</li>
+            <li>You can use 1-7.</li>
+            <li>You have {{ MAX_TRIES }} tries.</li>
+        </ul>
+        <div class="grid">
+            <input type="text" name="code" placeholder="Please, enter your guess and hit enter" aria-label="Guess" maxlength="4" @input="validateInput" v-model="guess" @keyup.enter="add" :disabled="block" />
+        </div>
+
+        <div class="container">
+            <table class="striped">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: 15px">#</th>
+                        <th scope="col" style="width: 25px">Guess</th>
+                        <th scope="col">Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(guess, index) in guesses">
+                        <th scope="row">{{ index + 1 }}</th>
+                        <td>{{ guess.value }}</td>
+                        <td>
+                            <code>{{ guess.score }}</code>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+
+</html>
